@@ -1,15 +1,20 @@
 import os
 import shutil
+import logging
+from urllib.parse import urljoin, urlparse
+
 import requests
-
-from urllib.parse import urlparse, urljoin
-
 from bs4 import BeautifulSoup
+
+from page_loader.tools import mk_dir, save_page
 
 HTML_RESOURCES = {"img": "src", "script": "src", "link": "href"}
 
+logging.basicConfig(format="%(asctime)s - %(message)s", level=logging.INFO)
+
 
 def download(url, save_path):
+    logging.info(f"Start with {url} to save in {save_path}")
     url_values = prepare_url(url, save_path)
     html_doc = download_page(url)
     soup = BeautifulSoup(html_doc, "html.parser")
@@ -17,6 +22,7 @@ def download(url, save_path):
         new_soup = change_html(tag, attr, soup, url_values)
     html_doc_new = new_soup.prettify()
     save_page(html_doc_new, url_values["url_save_path"])
+    logging.info(f"Finish with {url} to save in {save_path}")
     return url_values["url_save_path"]
 
 
@@ -24,6 +30,8 @@ def prepare_url(url, save_path):
     url_parse_result = urlparse(url)
     url_domain_changed = url_parse_result.netloc.replace(".", "-")
     url_path_changed = url_parse_result.path.replace("/", "-")
+    if url_path_changed == "-":
+        url_path_changed = ""
     url_file_name = url_domain_changed + url_path_changed
     url_save_path = os.path.join(save_path, url_file_name + ".html")
     url_save_dir_name = os.path.join(save_path, f"{url_file_name}_files")
@@ -43,8 +51,8 @@ def change_html(tag, attr, soup, url_values):
     for el in soup.find_all(tag):
         el_src = el.get(attr)
         if is_same_domain(el_src, url_values["url"]):
-            new_el_src = urlparse(el_src).path
-            new_el_src = new_el_src.replace("/", "-")
+            new_el_src = str(urlparse(el_src).path)
+            new_el_src = new_el_src.replace("/", "-").replace("'", "")
             new_el_src = url_values["url_domain_changed"] + new_el_src
             if not new_el_src.endswith((".css", ".js", ".png")):
                 new_el_src = f"{new_el_src}.html"
@@ -68,16 +76,6 @@ def is_same_domain(file_url, url):
         return True
 
 
-def mk_dir(dir_path):
-    if not os.path.exists(dir_path):
-        os.mkdir(dir_path)
-
-
-def save_page(html, path):
-    with open(path, "w") as text_file:
-        text_file.write(html)
-
-
 def download_file_from_url(file_url, save_path, file_name, page_url):
     save_path_with_file_name = os.path.join(save_path, file_name)
     file_url_parse = urlparse(file_url)
@@ -91,8 +89,18 @@ def download_file_from_url(file_url, save_path, file_name, page_url):
                     file.write(r.content)
                 else:
                     shutil.copyfileobj(r.raw, file)
+                logging.info("save file %s" % save_path_with_file_name)
+        else:
+            logging.info("status code of %s is 404" % file_url)
+    else:
+        logging.info("%s is already exists" % save_path_with_file_name)
 
 
 def download_page(url):
+    logging.debug("download page %s" % url)
     r = requests.get(url)
     return r.text
+
+
+URL = "https://ipaddress.my/"
+download(URL, "/tmp")

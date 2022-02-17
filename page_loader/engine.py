@@ -1,25 +1,29 @@
+import logging
 import os
 import shutil
-import logging
 from urllib.parse import urljoin, urlparse
 
 import requests
 from bs4 import BeautifulSoup
 
-from page_loader.tools import mk_dir, save_page
+from page_loader.tools import get_loglevel, mk_dir, save_page
 
 HTML_RESOURCES = {"img": "src", "script": "src", "link": "href"}
 
-logging.basicConfig(format="%(asctime)s - %(message)s", level=logging.INFO)
 
-
-def download(url, save_path):
+def download(url, save_path, loglevel="INFO"):
+    logging.basicConfig(
+        format="%(asctime)s - %(message)s", level=get_loglevel(loglevel)
+    )
     logging.info(f"Start with {url} to save in {save_path}")
     url_values = prepare_url(url, save_path)
     html_doc = download_page(url)
     soup = BeautifulSoup(html_doc, "html.parser")
+    all_html_resources = []
     for tag, attr in HTML_RESOURCES.items():
-        new_soup = change_html(tag, attr, soup, url_values)
+        new_soup, resources = change_html(tag, attr, soup, url_values)
+        all_html_resources.extend(resources)
+    download_resources(all_html_resources)
     html_doc_new = new_soup.prettify()
     save_page(html_doc_new, url_values["url_save_path"])
     logging.info(f"Finish with {url} to save in {save_path}")
@@ -48,6 +52,7 @@ def prepare_url(url, save_path):
 
 
 def change_html(tag, attr, soup, url_values):
+    resources = []
     for el in soup.find_all(tag):
         el_src = el.get(attr)
         if is_same_domain(el_src, url_values["url"]):
@@ -59,14 +64,16 @@ def change_html(tag, attr, soup, url_values):
             new_el_src_with_dir = (
                 f"{url_values['url_save_dir_name']}/{new_el_src}"
             )
-            download_file_from_url(
-                el_src,
-                url_values["url_save_dir_name"],
-                new_el_src_with_dir,
-                page_url=url_values["url"],
+            resources.append(
+                {
+                    "file_url": el_src,
+                    "save_path": url_values["url_save_dir_name"],
+                    "file_name": new_el_src_with_dir,
+                    "page_url": url_values["url"],
+                }
             )
             el[attr] = f"{url_values['url_file_name']}_files/{new_el_src}"
-    return soup
+    return soup, resources
 
 
 def is_same_domain(file_url, url):
@@ -83,6 +90,7 @@ def download_file_from_url(file_url, save_path, file_name, page_url):
         file_url = urljoin(page_url, file_url)
     if not os.path.exists(save_path_with_file_name):
         r = requests.get(file_url, stream=True)
+        print(save_path_with_file_name)
         if r.status_code != "404":
             with open(save_path_with_file_name, "wb") as file:
                 if file_url.endswith((".css", ".js", ".html")):
@@ -102,5 +110,6 @@ def download_page(url):
     return r.text
 
 
-URL = "https://ipaddress.my/"
-download(URL, "/tmp")
+def download_resources(resources):
+    for resource in resources:
+        download_file_from_url(**resource)

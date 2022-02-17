@@ -2,7 +2,7 @@ import os
 import tempfile
 
 import requests_mock
-from page_loader.page_loader import download
+from page_loader.engine import download
 
 from tests.fixtures.html_response import original_reponse, changed_html
 

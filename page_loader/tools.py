@@ -19,3 +19,11 @@ def get_loglevel(loglevel):
         "WARN": logging.WARN,
     }
     return log_levels[loglevel]
+
+
+def remove_double_from_the_list(items):
+    new_item = []
+    for item in items:
+        if item not in new_item:
+            new_item.append(item)
+    return new_item

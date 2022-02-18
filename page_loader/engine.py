@@ -5,8 +5,14 @@ from urllib.parse import urljoin, urlparse
 
 import requests
 from bs4 import BeautifulSoup
+from progress.bar import Bar
 
-from page_loader.tools import get_loglevel, mk_dir, save_page
+from page_loader.tools import (
+    get_loglevel,
+    mk_dir,
+    save_page,
+    remove_double_from_the_list,
+)
 
 HTML_RESOURCES = {"img": "src", "script": "src", "link": "href"}
 
@@ -23,6 +29,7 @@ def download(url, save_path, loglevel="INFO"):
     for tag, attr in HTML_RESOURCES.items():
         new_soup, resources = change_html(tag, attr, soup, url_values)
         all_html_resources.extend(resources)
+    all_html_resources = remove_double_from_the_list(all_html_resources)
     download_resources(all_html_resources)
     html_doc_new = new_soup.prettify()
     save_page(html_doc_new, url_values["url_save_path"])
@@ -111,5 +118,7 @@ def download_page(url):
 
 
 def download_resources(resources):
-    for resource in resources:
-        download_file_from_url(**resource)
+    with Bar("Downloading resources", max=len(resources)) as bar:
+        for resource in resources:
+            download_file_from_url(**resource)
+            bar.next()

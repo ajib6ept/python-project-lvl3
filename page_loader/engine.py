@@ -8,20 +8,19 @@ from bs4 import BeautifulSoup
 from progress.bar import Bar
 
 from page_loader.tools import (
-    get_loglevel,
     mk_dir,
     save_page,
     remove_double_from_the_list,
 )
 
+from page_loader.logger import create_logger
+
 HTML_RESOURCES = {"img": "src", "script": "src", "link": "href"}
 
 
 def download(url, save_path, loglevel="INFO"):
-    logging.basicConfig(
-        format="%(asctime)s - %(message)s", level=get_loglevel(loglevel)
-    )
-    logging.info(f"Start with {url} to save in {save_path}")
+    create_logger(loglevel)
+    logging.debug(f"Start with {url} to save in {save_path}")
     url_values = prepare_url(url, save_path)
     html_doc = download_page(url)
     soup = BeautifulSoup(html_doc, "html.parser")
@@ -30,10 +29,13 @@ def download(url, save_path, loglevel="INFO"):
         new_soup, resources = change_html(tag, attr, soup, url_values)
         all_html_resources.extend(resources)
     all_html_resources = remove_double_from_the_list(all_html_resources)
+    logging.debug(
+        f"Found {len(all_html_resources)} unique resources to download"
+    )
     download_resources(all_html_resources)
     html_doc_new = new_soup.prettify()
     save_page(html_doc_new, url_values["url_save_path"])
-    logging.info(f"Finish with {url} to save in {save_path}")
+    logging.info(f"Page was successfully downloaded into '{save_path}'")
     return url_values["url_save_path"]
 
 
@@ -95,25 +97,23 @@ def download_file_from_url(file_url, save_path, file_name, page_url):
     file_url_parse = urlparse(file_url)
     if not file_url_parse.netloc:
         file_url = urljoin(page_url, file_url)
-    if not os.path.exists(save_path_with_file_name):
-        r = requests.get(file_url, stream=True)
-        print(save_path_with_file_name)
-        if r.status_code != "404":
-            with open(save_path_with_file_name, "wb") as file:
-                if file_url.endswith((".css", ".js", ".html")):
-                    file.write(r.content)
-                else:
-                    shutil.copyfileobj(r.raw, file)
-                logging.info("save file %s" % save_path_with_file_name)
-        else:
-            logging.info("status code of %s is 404" % file_url)
+    if os.path.exists(save_path_with_file_name):
+        logging.debug("%s is already exists" % save_path_with_file_name)
+    r = requests.get(file_url, stream=True)
+    if r.status_code != "404":
+        with open(save_path_with_file_name, "wb") as file:
+            if file_url.endswith((".css", ".js", ".html")):
+                file.write(r.content)
+            else:
+                shutil.copyfileobj(r.raw, file)
+            logging.debug("Saved file into %s" % save_path_with_file_name)
     else:
-        logging.info("%s is already exists" % save_path_with_file_name)
+        logging.info("Status code of %s is 404" % file_url)
 
 
 def download_page(url):
-    logging.debug("download page %s" % url)
     r = requests.get(url)
+    logging.debug("Downloaded page %s" % url)
     return r.text
 
 

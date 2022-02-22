@@ -7,13 +7,8 @@ import requests
 from bs4 import BeautifulSoup
 from progress.bar import Bar
 
-from page_loader.tools import (
-    mk_dir,
-    save_page,
-    remove_double_from_the_list,
-)
-
 from page_loader.logger import create_logger
+from page_loader.tools import mk_dir, remove_double_from_the_list, save_page
 
 HTML_RESOURCES = {"img": "src", "script": "src", "link": "href"}
 
@@ -32,6 +27,7 @@ def download(url, save_path, loglevel="INFO"):
     logging.debug(
         f"Found {len(all_html_resources)} unique resources to download"
     )
+    mk_dir(url_values["url_save_dir_name"])
     download_resources(all_html_resources)
     html_doc_new = new_soup.prettify()
     save_page(html_doc_new, url_values["url_save_path"])
@@ -48,7 +44,6 @@ def prepare_url(url, save_path):
     url_file_name = url_domain_changed + url_path_changed
     url_save_path = os.path.join(save_path, url_file_name + ".html")
     url_save_dir_name = os.path.join(save_path, f"{url_file_name}_files")
-    mk_dir(url_save_dir_name)
     return {
         "url_parse_result": url_parse_result,
         "url_domain_changed": url_domain_changed,

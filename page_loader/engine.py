@@ -12,6 +12,7 @@ from page_loader.tools import mk_dir, remove_double_from_the_list, save_page
 
 HTML_RESOURCES = {"img": "src", "script": "src", "link": "href"}
 ERROR_STATUS_CODE = (404, 500)
+EXTENSION_OF_FILES = (".css", ".js", ".png", ".jpg")
 
 
 def download(url, save_path, loglevel="INFO"):
@@ -64,7 +65,7 @@ def change_html(tag, attr, soup, url_values):
             new_el_src = str(urlparse(el_src).path)
             new_el_src = new_el_src.replace("/", "-").replace("'", "")
             new_el_src = url_values["url_domain_changed"] + new_el_src
-            if not new_el_src.endswith((".css", ".js", ".png")):
+            if not new_el_src.endswith(EXTENSION_OF_FILES):
                 new_el_src = f"{new_el_src}.html"
             new_el_src_with_dir = (
                 f"{url_values['url_save_dir_name']}/{new_el_src}"

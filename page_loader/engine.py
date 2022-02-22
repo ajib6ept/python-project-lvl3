@@ -11,6 +11,7 @@ from page_loader.logger import create_logger
 from page_loader.tools import mk_dir, remove_double_from_the_list, save_page
 
 HTML_RESOURCES = {"img": "src", "script": "src", "link": "href"}
+ERROR_STATUS_CODE = (404, 500)
 
 
 def download(url, save_path, loglevel="INFO"):
@@ -95,7 +96,7 @@ def download_file_from_url(file_url, save_path, file_name, page_url):
     if os.path.exists(save_path_with_file_name):
         logging.debug("%s is already exists" % save_path_with_file_name)
     r = requests.get(file_url, stream=True)
-    if r.status_code != "404":
+    if r.status_code not in ERROR_STATUS_CODE:
         with open(save_path_with_file_name, "wb") as file:
             if file_url.endswith((".css", ".js", ".html")):
                 file.write(r.content)
@@ -103,11 +104,14 @@ def download_file_from_url(file_url, save_path, file_name, page_url):
                 shutil.copyfileobj(r.raw, file)
             logging.debug("Saved file into %s" % save_path_with_file_name)
     else:
-        logging.info("Status code of %s is 404" % file_url)
+        logging.info(f"Status code of {file_url} is {r.status_code}")
 
 
 def download_page(url):
     r = requests.get(url)
+    if r.status_code in ERROR_STATUS_CODE:
+        raise Exception(f"Error {r.status_code} when loading the page")
+        exit()
     logging.debug("Downloaded page %s" % url)
     return r.text
 

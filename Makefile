@@ -1,7 +1,5 @@
 install:
 	poetry install
-	make build
-	make package-install
 
 build:
 	poetry build

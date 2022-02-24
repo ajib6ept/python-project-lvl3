@@ -5,7 +5,7 @@ build:
 	poetry build
 
 package-install:
-	python3 -m pip install --user dist/*.whl
+	poetry run python -m pip install --force-reinstall dist/*.whl
 
 lint:
 	@poetry run flake8 page_loader

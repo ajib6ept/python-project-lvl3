@@ -1,9 +1,12 @@
+import sys
 import logging
 
 
 def create_logger(loglevel):
     logging.basicConfig(
-        format="%(asctime)s - %(message)s", level=get_loglevel(loglevel)
+        format="%(asctime)s - %(message)s",
+        level=get_loglevel(loglevel),
+        stream=sys.stdout,
     )
 
 

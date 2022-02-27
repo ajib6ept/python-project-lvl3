@@ -15,7 +15,7 @@ original_reponse = """<!DOCTYPE html>
         <script src="https://js.stripe.com/v3/"></script>
         <script src="https://ru.hexlet.io/packs/js/runtime.js"></script>
     </body>
-</html>"""
+</html>"""  # noqa: E501
 
 changed_html = """<!DOCTYPE html>
 <html lang="ru">
@@ -40,4 +40,4 @@ changed_html = """<!DOCTYPE html>
   <script src="ru-hexlet-io-courses_files/ru-hexlet-io-packs-js-runtime.js">
   </script>
  </body>
-</html>"""
+</html>"""  # noqa: E501

@@ -18,7 +18,7 @@ TEST_FULL_URL_CSS_FILE = "https://ru.hexlet.io/assets/application.css"
 
 
 def test_page_loader():
-    with requests_mock.Mocker() as m, tempfile.TemporaryDirectory() as tmpdirname:
+    with requests_mock.Mocker() as m, tempfile.TemporaryDirectory() as tmpdirname:  # noqa: E501
         m.get(TEST_URL, text=original_reponse)
         m.get(TEST_FULL_URL_PNG_FILE, text="1")
         m.get(TEST_FULL_URL_JS_FILE, text="1")
@@ -29,7 +29,7 @@ def test_page_loader():
 
 
 def test_page_loader_change_original_html():
-    with requests_mock.Mocker() as m, tempfile.TemporaryDirectory() as tmpdirname:
+    with requests_mock.Mocker() as m, tempfile.TemporaryDirectory() as tmpdirname:  # noqa: E501
         m.get(TEST_URL, text=original_reponse)
         m.get(TEST_FULL_URL_PNG_FILE, text="1")
         m.get(TEST_FULL_URL_JS_FILE, text="1")
@@ -40,21 +40,19 @@ def test_page_loader_change_original_html():
 
 
 def test_page_loader_download_files():
-    with requests_mock.Mocker() as m, tempfile.TemporaryDirectory() as tmpdirname:
+    with requests_mock.Mocker() as m, tempfile.TemporaryDirectory() as tmpdirname:  # noqa: E501
         m.get(TEST_URL, text=original_reponse)
         m.get(TEST_FULL_URL_PNG_FILE, text="1")
         m.get(TEST_FULL_URL_JS_FILE, text="1")
         m.get(TEST_FULL_URL_CSS_FILE, text="1")
-        file_path = download(TEST_URL, tmpdirname)
-        assert True == os.path.exists(
-            os.path.join(tmpdirname, TEST_URL_DIR_NAME)
-        )
-        assert True == os.path.exists(
+        download(TEST_URL, tmpdirname)
+        assert os.path.exists(os.path.join(tmpdirname, TEST_URL_DIR_NAME))
+        assert os.path.exists(
             os.path.join(tmpdirname, TEST_URL_DIR_NAME, TEST_URL_PNG_FILE_NAME)
         )
-        assert True == os.path.exists(
+        assert os.path.exists(
             os.path.join(tmpdirname, TEST_URL_DIR_NAME, TEST_URL_JS_FILE_NAME)
         )
-        assert True == os.path.exists(
+        assert os.path.exists(
             os.path.join(tmpdirname, TEST_URL_DIR_NAME, TEST_URL_CSS_FILE_NAME)
         )

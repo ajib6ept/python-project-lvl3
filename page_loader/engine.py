@@ -33,7 +33,8 @@ def download(url, save_path, loglevel="INFO"):
     download_resources(all_html_resources)
     html_doc_new = new_soup.prettify()
     save_page(html_doc_new, url_values["url_save_path"])
-    logging.info(f"Page was successfully downloaded into '{save_path}'")
+    url_save_path = url_values["url_save_path"]
+    logging.info(f"Page was successfully downloaded into '{url_save_path}'")
     return url_values["url_save_path"]
 
 

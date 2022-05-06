@@ -12,7 +12,7 @@ from page_loader.tools import mk_dir, remove_double_from_the_list, save_page
 
 HTML_RESOURCES = {"img": "src", "script": "src", "link": "href"}
 ERROR_STATUS_CODE = (404, 500)
-EXTENSION_OF_FILES = (".css", ".js", ".png", ".jpg")
+EXTENSION_OF_FILES = (".css", ".js", ".png", ".jpg", ".ico")
 
 
 def download(url, save_path, loglevel="INFO"):
@@ -62,7 +62,7 @@ def change_html(tag, attr, soup, url_values):
     resources = []
     for el in soup.find_all(tag):
         el_src = el.get(attr)
-        if is_same_domain(el_src, url_values["url"]):
+        if el_src is not None and is_same_domain(el_src, url_values["url"]):
             new_el_src = str(urlparse(el_src).path)
             new_el_src = new_el_src.replace("/", "-").replace("'", "")
             new_el_src = url_values["url_domain_changed"] + new_el_src
@@ -74,11 +74,11 @@ def change_html(tag, attr, soup, url_values):
             resources.append(
                 {
                     "file_url": el_src,
-                    "save_path": url_values["url_save_dir_name"],
-                    "file_name": new_el_src_with_dir,
+                    "save_file_path": new_el_src_with_dir,
                     "page_url": url_values["url"],
                 }
             )
+            print(resources)
             el[attr] = f"{url_values['url_file_name']}_files/{new_el_src}"
     return soup, resources
 
@@ -90,21 +90,20 @@ def is_same_domain(file_url, url):
         return True
 
 
-def download_file_from_url(file_url, save_path, file_name, page_url):
-    save_path_with_file_name = os.path.join(save_path, file_name)
+def download_file_from_url(file_url, save_file_path, page_url):
     file_url_parse = urlparse(file_url)
     if not file_url_parse.netloc:
         file_url = urljoin(page_url, file_url)
-    if os.path.exists(save_path_with_file_name):
-        logging.debug(f"{save_path_with_file_name} is already exists")
+    if os.path.exists(save_file_path):
+        logging.debug(f"{save_file_path} is already exists")
     r = requests.get(file_url, stream=True)
     if r.status_code not in ERROR_STATUS_CODE:
-        with open(save_path_with_file_name, "wb") as file:
+        with open(save_file_path, "wb") as file:
             if file_url.endswith((".css", ".js", ".html")):
                 file.write(r.content)
             else:
                 shutil.copyfileobj(r.raw, file)
-            logging.debug(f"Saved file into {save_path_with_file_name}")
+            logging.debug(f"Saved file into {save_file_path}")
     else:
         logging.info(f"Status code of {file_url} is {r.status_code}")
 

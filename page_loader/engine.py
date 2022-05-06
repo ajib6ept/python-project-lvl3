@@ -96,7 +96,7 @@ def download_file_from_url(file_url, save_path, file_name, page_url):
     if not file_url_parse.netloc:
         file_url = urljoin(page_url, file_url)
     if os.path.exists(save_path_with_file_name):
-        logging.debug("%s is already exists" % save_path_with_file_name)
+        logging.debug(f"{save_path_with_file_name} is already exists")
     r = requests.get(file_url, stream=True)
     if r.status_code not in ERROR_STATUS_CODE:
         with open(save_path_with_file_name, "wb") as file:
@@ -104,7 +104,7 @@ def download_file_from_url(file_url, save_path, file_name, page_url):
                 file.write(r.content)
             else:
                 shutil.copyfileobj(r.raw, file)
-            logging.debug("Saved file into %s" % save_path_with_file_name)
+            logging.debug(f"Saved file into {save_path_with_file_name}")
     else:
         logging.info(f"Status code of {file_url} is {r.status_code}")
 
@@ -114,7 +114,7 @@ def download_page(url):
     if r.status_code in ERROR_STATUS_CODE:
         raise Exception(f"Error {r.status_code} when loading the page")
         exit()
-    logging.debug("Downloaded page %s" % url)
+    logging.debug(f"Downloaded page {url}")
     return r.text
 
 

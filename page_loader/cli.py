@@ -25,6 +25,4 @@ from page_loader.engine import download
 )
 @click.argument("url", metavar="<url>")
 def arg_parse(url, output, loglevel):
-    # return {"url": url, "output": output, "logevel": loglevel}
-    # pars_pages
     download(url, output, loglevel)

@@ -12,7 +12,7 @@ from page_loader.tools import mk_dir, remove_double_from_the_list, save_page
 
 HTML_RESOURCES = {"img": "src", "script": "src", "link": "href"}
 ERROR_STATUS_CODE = (404, 500)
-EXTENSION_OF_FILES = (".css", ".js", ".png", ".jpg", ".ico")
+TEXT_FILE_EXTENSION = (".css", ".js", ".html")
 
 
 def download(url, save_path, loglevel="INFO"):
@@ -48,9 +48,7 @@ def prepare_url(url, save_path):
     url_save_path = os.path.join(save_path, url_file_name + ".html")
     url_save_dir_name = os.path.join(save_path, f"{url_file_name}_files")
     return {
-        "url_parse_result": url_parse_result,
         "url_domain_changed": url_domain_changed,
-        "url_path_changed": url_path_changed,
         "url_file_name": url_file_name,
         "url_save_path": url_save_path,
         "url": url,
@@ -66,7 +64,7 @@ def change_html(tag, attr, soup, url_values):
             new_el_src = str(urlparse(el_src).path)
             new_el_src = new_el_src.replace("/", "-").replace("'", "")
             new_el_src = url_values["url_domain_changed"] + new_el_src
-            if not new_el_src.endswith(EXTENSION_OF_FILES):
+            if "." not in new_el_src:
                 new_el_src = f"{new_el_src}.html"
             new_el_src_with_dir = (
                 f"{url_values['url_save_dir_name']}/{new_el_src}"
@@ -78,7 +76,6 @@ def change_html(tag, attr, soup, url_values):
                     "page_url": url_values["url"],
                 }
             )
-            print(resources)
             el[attr] = f"{url_values['url_file_name']}_files/{new_el_src}"
     return soup, resources
 
@@ -99,7 +96,7 @@ def download_file_from_url(file_url, save_file_path, page_url):
     r = requests.get(file_url, stream=True)
     if r.status_code not in ERROR_STATUS_CODE:
         with open(save_file_path, "wb") as file:
-            if file_url.endswith((".css", ".js", ".html")):
+            if file_url.endswith(TEXT_FILE_EXTENSION):
                 file.write(r.content)
             else:
                 shutil.copyfileobj(r.raw, file)

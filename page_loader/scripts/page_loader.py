@@ -3,5 +3,5 @@ from page_loader.engine import download
 
 
 def main():
-    url, output, loglevel = arg_parse()
-    download(url, output, loglevel)
+    args = arg_parse(standalone_mode=False)
+    download(*args)

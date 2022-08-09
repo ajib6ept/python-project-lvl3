@@ -1,7 +1,5 @@
 import click
 
-from page_loader.engine import download
-
 
 @click.command()
 @click.help_option("-h", "--help")
@@ -25,4 +23,4 @@ from page_loader.engine import download
 )
 @click.argument("url", metavar="<url>")
 def arg_parse(url, output, loglevel):
-    download(url, output, loglevel)
+    return url, output, loglevel

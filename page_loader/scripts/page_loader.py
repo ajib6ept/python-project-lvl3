@@ -1,5 +1,7 @@
 from page_loader.cli import arg_parse
+from page_loader.engine import download
 
 
 def main():
-    arg_parse()
+    url, output, loglevel = arg_parse()
+    download(url, output, loglevel)

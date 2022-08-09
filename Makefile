@@ -14,9 +14,10 @@ page_loader:
 	@poetry run page_loader
 
 test:
-	poetry run coverage run --source=page_loader -m pytest tests
+	poetry run pytest -vvs
 	
 test-coverage:
+	poetry run coverage run --source=page_loader -m pytest tests
 	poetry run coverage xml
 
 .PHONY: test, page_loader

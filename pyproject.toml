@@ -3,9 +3,11 @@ name = "hexlet-code"
 version = "0.1.0"
 description = ""
 authors = ["ajib6ept <asAlbert@narod.ru>"]
+repository = "https://github.com/ajib6ept/python-project-lvl3"
 packages = [
     { include = "page_loader" },
 ]
+classifiers = ["Topic :: Software Development"]
 
 [tool.poetry.dependencies]
 python = "^3.8"

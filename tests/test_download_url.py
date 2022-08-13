@@ -1,9 +1,11 @@
-import os
 import tempfile
+from pathlib import Path
 
-import requests_mock
+import pytest
+import requests
+
 from page_loader.engine import download
-
+from page_loader.exceptions import BadStatusCodeException
 
 TEST_URL = "https://ru.hexlet.io/courses"
 TEST_URL_FILE_NAME = "ru-hexlet-io-courses.html"
@@ -14,53 +16,101 @@ TEST_URL_CSS_FILE_NAME = "ru-hexlet-io-assets-application.css"
 TEST_FULL_URL_PNG_FILE = "https://ru.hexlet.io/assets/professions/nodejs.png"
 TEST_FULL_URL_JS_FILE = "https://ru.hexlet.io/packs/js/runtime.js"
 TEST_FULL_URL_CSS_FILE = "https://ru.hexlet.io/assets/application.css"
-
-TEST_DATA_DIR = os.path.join(os.path.dirname(__file__), "fixtures")
-ORIGINAL_RESPONSE_PATH = os.path.join(TEST_DATA_DIR, "original_response.txt")
-CHANGED_RESPONSE_PATH = os.path.join(TEST_DATA_DIR, "changed_html.txt")
+TEST_UNREACHABLE_URL = "https://10.0.0.0"
 
 
-def test_page_loader():
-    with requests_mock.Mocker() as m, tempfile.TemporaryDirectory() as tmpdirname:  # noqa: E501
-        original_reponse = open(ORIGINAL_RESPONSE_PATH).read()
-        changed_html = open(CHANGED_RESPONSE_PATH).read()
-        m.get(TEST_URL, text=original_reponse)
-        m.get(TEST_FULL_URL_PNG_FILE, text="1")
-        m.get(TEST_FULL_URL_JS_FILE, text="1")
-        m.get(TEST_FULL_URL_CSS_FILE, text="1")
-        file_path = download(TEST_URL, tmpdirname)
-        assert file_path == os.path.join(tmpdirname, TEST_URL_FILE_NAME)
-        assert open(file_path, "r").read() == changed_html
+TEST_DATA_DIR = Path(__file__).resolve().parent.joinpath("fixtures")
+TEST_PNG_FILE = Path(TEST_DATA_DIR).joinpath("nodejs.png")
+TEST_JS_FILE = Path(TEST_DATA_DIR).joinpath("runtime.js")
+TEST_CSS_FILE = Path(TEST_DATA_DIR).joinpath("application.css")
 
 
-def test_page_loader_change_original_html():
-    with requests_mock.Mocker() as m, tempfile.TemporaryDirectory() as tmpdirname:  # noqa: E501
-        original_reponse = open(ORIGINAL_RESPONSE_PATH).read()
-        changed_html = open(CHANGED_RESPONSE_PATH).read()
-        m.get(TEST_URL, text=original_reponse)
-        m.get(TEST_FULL_URL_PNG_FILE, text="1")
-        m.get(TEST_FULL_URL_JS_FILE, text="1")
-        m.get(TEST_FULL_URL_CSS_FILE, text="1")
-        file_path = download(TEST_URL, tmpdirname)
-        response = open(file_path, "r").read()
-        assert response == changed_html
+ORIGINAL_RESPONSE_PATH = Path(TEST_DATA_DIR).joinpath("original_response.txt")
+CHANGED_RESPONSE_PATH = Path(TEST_DATA_DIR).joinpath("changed_html.txt")
 
 
-def test_page_loader_download_files():
-    with requests_mock.Mocker() as m, tempfile.TemporaryDirectory() as tmpdirname:  # noqa: E501
-        original_reponse = open(ORIGINAL_RESPONSE_PATH).read()
-        m.get(TEST_URL, text=original_reponse)
-        m.get(TEST_FULL_URL_PNG_FILE, text="1")
-        m.get(TEST_FULL_URL_JS_FILE, text="1")
-        m.get(TEST_FULL_URL_CSS_FILE, text="1")
+@pytest.fixture()
+def tmpdirname():
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        yield tmpdirname
+
+
+def test_page_loader_base_functional(tmpdirname, requests_mock):
+    original_reponse = Path(ORIGINAL_RESPONSE_PATH).read_text()
+    changed_html = Path(CHANGED_RESPONSE_PATH).read_text()
+    requests_mock.get(TEST_URL, text=original_reponse)
+    requests_mock.get(
+        TEST_FULL_URL_PNG_FILE, content=Path(TEST_PNG_FILE).read_bytes()
+    )
+    requests_mock.get(
+        TEST_FULL_URL_JS_FILE, content=Path(TEST_JS_FILE).read_bytes()
+    )
+    requests_mock.get(
+        TEST_FULL_URL_CSS_FILE, content=Path(TEST_CSS_FILE).read_bytes()
+    )
+    file_path = download(TEST_URL, tmpdirname)
+    response = Path(file_path).read_text()
+    assert Path(file_path) == Path(tmpdirname).joinpath(TEST_URL_FILE_NAME)
+    assert response == changed_html
+    assert Path(tmpdirname).joinpath(TEST_URL_DIR_NAME).exists()
+    assert (
+        Path(tmpdirname)
+        .joinpath(TEST_URL_DIR_NAME, TEST_URL_PNG_FILE_NAME)
+        .exists()
+    )
+    assert (
+        Path(tmpdirname)
+        .joinpath(TEST_URL_DIR_NAME, TEST_URL_JS_FILE_NAME)
+        .exists()
+    )
+
+    assert (
+        Path(tmpdirname)
+        .joinpath(TEST_URL_DIR_NAME, TEST_URL_CSS_FILE_NAME)
+        .exists()
+    )
+    assert (
+        Path(TEST_PNG_FILE).read_bytes()
+        == Path(tmpdirname)
+        .joinpath(TEST_URL_DIR_NAME, TEST_URL_PNG_FILE_NAME)
+        .read_bytes()
+    )
+    assert (
+        Path(TEST_JS_FILE).read_bytes()
+        == Path(tmpdirname)
+        .joinpath(TEST_URL_DIR_NAME, TEST_URL_JS_FILE_NAME)
+        .read_bytes()
+    )
+    assert (
+        Path(TEST_CSS_FILE).read_bytes()
+        == Path(tmpdirname)
+        .joinpath(TEST_URL_DIR_NAME, TEST_URL_CSS_FILE_NAME)
+        .read_bytes()
+    )
+
+
+def test_page_loader_bad_site(tmpdirname, requests_mock):
+    requests_mock.get(TEST_URL, text="Not Found", status_code=500)
+    with pytest.raises(BadStatusCodeException):
         download(TEST_URL, tmpdirname)
-        assert os.path.exists(os.path.join(tmpdirname, TEST_URL_DIR_NAME))
-        assert os.path.exists(
-            os.path.join(tmpdirname, TEST_URL_DIR_NAME, TEST_URL_PNG_FILE_NAME)
-        )
-        assert os.path.exists(
-            os.path.join(tmpdirname, TEST_URL_DIR_NAME, TEST_URL_JS_FILE_NAME)
-        )
-        assert os.path.exists(
-            os.path.join(tmpdirname, TEST_URL_DIR_NAME, TEST_URL_CSS_FILE_NAME)
-        )
+    assert not Path(tmpdirname).joinpath(TEST_URL_DIR_NAME).exists()
+    assert (
+        not Path(tmpdirname)
+        .joinpath(TEST_URL_DIR_NAME, TEST_URL_PNG_FILE_NAME)
+        .exists()
+    )
+    assert (
+        not Path(tmpdirname)
+        .joinpath(TEST_URL_DIR_NAME, TEST_URL_JS_FILE_NAME)
+        .exists()
+    )
+    assert (
+        not Path(tmpdirname)
+        .joinpath(TEST_URL_DIR_NAME, TEST_URL_CSS_FILE_NAME)
+        .exists()
+    )
+
+
+def test_page_loader_unreachable_site(tmpdirname):
+    with pytest.raises(requests.exceptions.ConnectTimeout):
+        download(TEST_UNREACHABLE_URL, tmpdirname)

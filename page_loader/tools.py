@@ -1,10 +1,10 @@
-import os
 import logging
+import os
 
 
 def mk_dir(dir_path):
     if not os.path.exists(dir_path):
-        os.mkdir(dir_path)
+        os.makedirs(dir_path, exist_ok=True)
         logging.debug(f"Successfully created directory {dir_path}")
 
 

@@ -17,7 +17,7 @@ TEST_FULL_URL_PNG_FILE = "https://ru.hexlet.io/assets/professions/nodejs.png"
 TEST_FULL_URL_JS_FILE = "https://ru.hexlet.io/packs/js/runtime.js"
 TEST_FULL_URL_CSS_FILE = "https://ru.hexlet.io/assets/application.css"
 TEST_UNREACHABLE_URL = "https://10.0.0.0"
-
+TEST_NOT_EXISTS_PATH = "111111"
 
 TEST_DATA_DIR = Path(__file__).resolve().parent.joinpath("fixtures")
 TEST_PNG_FILE = Path(TEST_DATA_DIR).joinpath("nodejs.png")
@@ -114,3 +114,9 @@ def test_page_loader_bad_site(tmpdirname, requests_mock):
 def test_page_loader_unreachable_site(tmpdirname):
     with pytest.raises(requests.exceptions.ConnectTimeout):
         download(TEST_UNREACHABLE_URL, tmpdirname)
+
+
+def test_storage_errors(requests_mock):
+    requests_mock.get(TEST_URL)
+    with pytest.raises(Exception):
+        download(TEST_URL, TEST_NOT_EXISTS_PATH)

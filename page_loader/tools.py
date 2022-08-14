@@ -1,5 +1,6 @@
 import logging
 import os
+import sys
 
 from page_loader.exceptions import StorageErrorException
 
@@ -26,3 +27,8 @@ def remove_double_from_the_list(items):
         if item not in new_item:
             new_item.append(item)
     return new_item
+
+
+def eprint(*args, **kwargs):
+    "print message to stderr"
+    print(*args, file=sys.stderr, **kwargs)

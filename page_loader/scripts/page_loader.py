@@ -5,6 +5,7 @@ from page_loader.cli import arg_parse
 from page_loader.engine import download
 from page_loader.exceptions import (BadStatusCodeException,
                                     StorageErrorException)
+from page_loader.tools import eprint
 
 
 def main():
@@ -14,15 +15,17 @@ def main():
         url, output = args[0], args[1]
         download(*args)
     except click.exceptions.BadParameter as e:
-        print(f"Bad parameter parametr: {e}")
+        eprint(f"Bad parameter parametr: {e}")
     except requests.exceptions.ConnectTimeout:
-        print(f"The request timed out while trying to connect to {url}")
+        eprint(f"The request timed out while trying to connect to {url}")
     except BadStatusCodeException:
-        print("{url} return error HTTP status code")
+        eprint("{url} return error HTTP status code")
     except StorageErrorException:
-        print(f"Error creating a directory {output}")
+        eprint(f"Error creating a directory {output}")
     except Exception:
-        print(f"An error occurred while trying to download {url}")
+        eprint(
+            f"An error occurred while trying to download {url}",
+        )
     else:
         exception_happened = False
     finally:

@@ -5,7 +5,8 @@ import pytest
 import requests
 
 from page_loader.engine import download
-from page_loader.exceptions import BadStatusCodeException
+from page_loader.exceptions import (BadStatusCodeException,
+                                    StorageErrorException)
 
 TEST_URL = "https://ru.hexlet.io/courses"
 TEST_URL_FILE_NAME = "ru-hexlet-io-courses.html"
@@ -118,5 +119,5 @@ def test_page_loader_unreachable_site(tmpdirname):
 
 def test_storage_errors(requests_mock):
     requests_mock.get(TEST_URL)
-    with pytest.raises(Exception):
+    with pytest.raises(StorageErrorException):
         download(TEST_URL, TEST_NOT_EXISTS_PATH)

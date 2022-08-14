@@ -1,11 +1,17 @@
 import logging
 import os
 
+from page_loader.exceptions import StorageErrorException
+
 
 def mk_dir(dir_path):
     if not os.path.exists(dir_path):
-        os.mkdir(dir_path)
-        logging.debug(f"Successfully created directory {dir_path}")
+        parent_path = os.path.abspath(os.path.join(dir_path, os.pardir))
+        if os.path.exists(parent_path):
+            os.mkdir(dir_path)
+            logging.debug(f"Successfully created directory {dir_path}")
+        else:
+            raise StorageErrorException
 
 
 def save_page(html, path):

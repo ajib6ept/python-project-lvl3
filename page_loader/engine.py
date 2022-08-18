@@ -7,7 +7,6 @@ import requests
 from bs4 import BeautifulSoup
 from progress.bar import Bar
 
-from page_loader.exceptions import BadStatusCodeException
 from page_loader.logger import create_logger
 from page_loader.tools import mk_dir, remove_double_from_the_list, save_page
 
@@ -112,10 +111,7 @@ def download_file_from_url(file_url, save_file_path, page_url):
 
 def download_page(url):
     r = requests.get(url, timeout=1)
-    if r.status_code in ERROR_STATUS_CODE:
-        raise BadStatusCodeException(
-            f"Error {r.status_code} when loading the page"
-        )
+    r.raise_for_status()
     logging.debug(f"Downloaded page {url}")
     return r.text
 

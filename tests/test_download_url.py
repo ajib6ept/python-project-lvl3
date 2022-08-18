@@ -5,8 +5,7 @@ import pytest
 import requests
 
 from page_loader.engine import download
-from page_loader.exceptions import (BadStatusCodeException,
-                                    StorageErrorException)
+from page_loader.exceptions import StorageErrorException
 
 TEST_URL = "https://ru.hexlet.io/courses"
 TEST_URL_FILE_NAME = "ru-hexlet-io-courses.html"
@@ -92,7 +91,7 @@ def test_page_loader_base_functional(tmpdirname, requests_mock):
 
 def test_page_loader_bad_site(tmpdirname, requests_mock):
     requests_mock.get(TEST_URL, text="Not Found", status_code=500)
-    with pytest.raises(BadStatusCodeException):
+    with pytest.raises(requests.exceptions.HTTPError):
         download(TEST_URL, tmpdirname)
     assert not Path(tmpdirname).joinpath(TEST_URL_DIR_NAME).exists()
     assert (

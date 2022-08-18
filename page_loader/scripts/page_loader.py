@@ -3,8 +3,7 @@ import requests
 
 from page_loader.cli import arg_parse
 from page_loader.engine import download
-from page_loader.exceptions import (BadStatusCodeException,
-                                    StorageErrorException)
+from page_loader.exceptions import StorageErrorException
 from page_loader.tools import eprint
 
 
@@ -18,7 +17,7 @@ def main():
         eprint(f"Bad parameter parametr: {e}")
     except requests.exceptions.ConnectTimeout:
         eprint(f"The request timed out while trying to connect to {url}")
-    except BadStatusCodeException:
+    except requests.exceptions.HTTPError:
         eprint("{url} return error HTTP status code")
     except StorageErrorException:
         eprint(f"Error creating a directory {output}")

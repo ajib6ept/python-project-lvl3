@@ -24,6 +24,10 @@ def save_page(html, path):
 
 
 def remove_double_from_the_list(items):
+    """
+    >>> remove_double_from_the_list([[1,2], [1,2], [3,4]])
+    [[1, 2], [3, 4]]
+    """
     new_item = []
     for item in items:
         if item not in new_item:

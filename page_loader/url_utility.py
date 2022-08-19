@@ -13,6 +13,14 @@ def create_normalize_url_name(url):
 
 
 def is_same_domain(file_url, url):
+    """
+    >>> is_same_domain('/courses', 'https://ru.hexlet.io')
+    True
+    >>> is_same_domain('https://ru.hexlet.io/courses', 'https://ru.hexlet.io')
+    True
+    >>> is_same_domain('https://ru.hexlet.io/courses', 'https://hexlet.io')
+    False
+    """
     if not urlparse(file_url).netloc:
         return True
     if urlparse(file_url).netloc == urlparse(url).netloc:

@@ -17,7 +17,6 @@ TEST_FULL_URL_PNG_FILE = "https://ru.hexlet.io/assets/professions/nodejs.png"
 TEST_FULL_URL_JS_FILE = "https://ru.hexlet.io/packs/js/runtime.js"
 TEST_FULL_URL_CSS_FILE = "https://ru.hexlet.io/assets/application.css"
 TEST_UNREACHABLE_URL = "https://10.0.0.0"
-TEST_NOT_EXISTS_PATH = "111111"
 
 TEST_DATA_DIR = Path(__file__).resolve().parent.joinpath("fixtures")
 TEST_PNG_FILE = Path(TEST_DATA_DIR).joinpath("nodejs.png")
@@ -116,7 +115,9 @@ def test_page_loader_unreachable_site(tmpdirname):
         download(TEST_UNREACHABLE_URL, tmpdirname)
 
 
-def test_storage_errors(requests_mock):
-    requests_mock.get(TEST_URL)
+def test_storage_errors(tmpdirname, requests_mock):
+    not_exists_path = Path(tmpdirname).joinpath(*[str(i) for i in range(5)])
+    original_reponse = Path(ORIGINAL_RESPONSE_PATH).read_text()
+    requests_mock.get(TEST_URL, text=original_reponse)
     with pytest.raises(StorageErrorException):
-        download(TEST_URL, TEST_NOT_EXISTS_PATH)
+        download(TEST_URL, not_exists_path)

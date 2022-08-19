@@ -14,7 +14,7 @@ page_loader:
 	@poetry run page_loader
 
 test:
-	poetry run pytest -vvs
+	poetry run pytest -vvs --doctest-modules
 	
 test-coverage:
 	poetry run coverage run --source=page_loader -m pytest tests

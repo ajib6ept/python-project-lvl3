@@ -3,9 +3,9 @@ import os
 HTML_RESOURCES = {"img": "src", "script": "src", "link": "href"}
 
 
-def get_link_from_attributes(tag_name, attrs):  # noqa: E501
+def get_link_from_attributes(tag_name, attrs):
     """
-    Getting the source from attributes
+    getting the source from attributes
 
     >>> get_link_from_attributes('link', {'href': '/courses', 'rel': ['cano']})
     '/courses'
@@ -21,9 +21,9 @@ def get_link_from_attributes(tag_name, attrs):  # noqa: E501
     return ""
 
 
-def change_resource_link(soup_item, source_link, save_dir_path):  # noqa: E501
+def change_resource_link(soup_item, source_link, save_dir_path):
     """
-    change resource link in soup
+    change the link to the resource in the soup
     """
     base_name = os.path.basename(save_dir_path)
     soup_item.attrs[HTML_RESOURCES[soup_item.name]] = os.path.join(

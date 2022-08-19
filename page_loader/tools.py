@@ -13,6 +13,8 @@ def mk_dir(dir_path):
             logging.debug(f"Successfully created directory {dir_path}")
         else:
             raise StorageErrorException
+    else:
+        logging.debug(f"{dir_path} is already exists")
 
 
 def save_page(html, path):

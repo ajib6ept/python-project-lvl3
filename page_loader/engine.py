@@ -1,16 +1,27 @@
 import logging
 import os
 import shutil
-from urllib.parse import urljoin, urlparse
 
 import requests
 from bs4 import BeautifulSoup
 from progress.bar import Bar
 
 from page_loader.logger import create_logger
+from page_loader.resources import (change_resource_link,
+                                   get_link_from_attributes)
 from page_loader.tools import mk_dir, remove_double_from_the_list, save_page
+from page_loader.url_utility import (create_full_source_url,
+                                     create_normalize_url_name,
+                                     create_source_new_filename,
+                                     is_same_domain)
 
 HTML_RESOURCES = {"img": "src", "script": "src", "link": "href"}
+SRC_RESOURCES = ("img", "script")
+HREF_RESOURCES = ("link",)
+
+DEFAULT_TIMEOUT = 1
+
+
 ERROR_STATUS_CODE = (404, 500)
 TEXT_FILE_EXTENSION = (".css", ".js", ".html")
 
@@ -18,106 +29,69 @@ TEXT_FILE_EXTENSION = (".css", ".js", ".html")
 def download(url, save_path, loglevel="INFO"):
     create_logger(loglevel)
     logging.debug(f"Start with {url} to save in {save_path}")
-
-    # create the necessary variables
-    url_domain_changed = urlparse(url).netloc.replace(".", "-")
-    url_path_changed = urlparse(url).path.replace("/", "-")
-    if url_path_changed == "-":
-        url_path_changed = ""
-    url_file_name = url_domain_changed + url_path_changed
+    url_file_name = create_normalize_url_name(url)
     url_save_path = os.path.join(save_path, url_file_name + ".html")
     url_save_dir_name = os.path.join(save_path, f"{url_file_name}_files")
 
     html_doc = download_page(url)
     soup = BeautifulSoup(html_doc, "html.parser")
     all_html_resources = []
-    for tag, attr in HTML_RESOURCES.items():
-        new_soup, resources = change_html(
-            tag,
-            attr,
-            soup,
-            url,
-            url_save_dir_name,
-            url_domain_changed,
-            url_file_name,
-        )
-        all_html_resources.extend(resources)
+    keys = list(HTML_RESOURCES.keys())
+
+    for element in soup.find_all(keys):
+        element_src = get_link_from_attributes(element.name, element.attrs)
+        if element_src and is_same_domain(element_src, url):
+            all_html_resources.append([element, element_src])
     all_html_resources = remove_double_from_the_list(all_html_resources)
     logging.debug(
         f"Found {len(all_html_resources)} unique resources to download"
     )
     mk_dir(url_save_dir_name)
-    download_resources(all_html_resources)
-    html_doc_new = new_soup.prettify()
+    download_resources(
+        all_html_resources, original_url=url, save_dir_path=url_save_dir_name
+    )
+    html_doc_new = soup.prettify()
     save_page(html_doc_new, url_save_path)
     logging.info(f"Page was successfully downloaded into '{url_save_path}'")
     return url_save_path
 
 
-def change_html(
-    tag,
-    attr,
-    soup,
-    url,
-    url_save_dir_name,
-    url_domain_changed,
-    url_file_name,
-):
-    resources = []
-    for el in soup.find_all(tag):
-        el_src = el.get(attr)
-        if el_src is not None and is_same_domain(el_src, url):
-            new_el_src = str(urlparse(el_src).path)
-            new_el_src = new_el_src.replace("/", "-").replace("'", "")
-            new_el_src = url_domain_changed + new_el_src
-            if "." not in new_el_src:
-                new_el_src = f"{new_el_src}.html"
-            new_el_src_with_dir = f"{url_save_dir_name}/{new_el_src}"
-            resources.append(
-                {
-                    "file_url": el_src,
-                    "save_file_path": new_el_src_with_dir,
-                    "page_url": url,
-                }
-            )
-            el[attr] = f"{url_file_name}_files/{new_el_src}"
-    return soup, resources
+def save_file(file_obj, source_new_filename, save_path_dir):
+    full_save_path = os.path.join(save_path_dir, source_new_filename)
+    with open(full_save_path, "wb") as file:
+        print(file_obj.url)
+        if file_obj.url.endswith(TEXT_FILE_EXTENSION):
+            file.write(file_obj.content)
+        else:
+            shutil.copyfileobj(file_obj.raw, file)
+        logging.debug(f"Saved file into {full_save_path}")
 
 
-def is_same_domain(file_url, url):
-    if not urlparse(file_url).netloc:
-        return True
-    if urlparse(file_url).netloc == urlparse(url).netloc:
-        return True
-
-
-def download_file_from_url(file_url, save_file_path, page_url):
-    file_url_parse = urlparse(file_url)
-    if not file_url_parse.netloc:
-        file_url = urljoin(page_url, file_url)
-    if os.path.exists(save_file_path):
-        logging.debug(f"{save_file_path} is already exists")
-    r = requests.get(file_url, stream=True)
-    if r.status_code not in ERROR_STATUS_CODE:
-        with open(save_file_path, "wb") as file:
-            if file_url.endswith(TEXT_FILE_EXTENSION):
-                file.write(r.content)
-            else:
-                shutil.copyfileobj(r.raw, file)
-            logging.debug(f"Saved file into {save_file_path}")
+def download_file_from_url(file_url):
+    r = requests.get(file_url, stream=True, timeout=DEFAULT_TIMEOUT)
+    if r.status_code <= 400:  # If the status code is not an error
+        return r
     else:
         logging.info(f"Status code of {file_url} is {r.status_code}")
 
 
 def download_page(url):
-    r = requests.get(url, timeout=1)
+    r = requests.get(url, timeout=DEFAULT_TIMEOUT)
     r.raise_for_status()
     logging.debug(f"Downloaded page {url}")
     return r.text
 
 
-def download_resources(resources):
+def download_resources(resources, original_url, save_dir_path):
     with Bar("Downloading resources", max=len(resources)) as bar:
         for resource in resources:
-            download_file_from_url(**resource)
-            bar.next()
+            soup_item, source_link = resource
+            resource_link = create_full_source_url(source_link, original_url)
+            print(resource_link)
+            source_new_filename = create_source_new_filename(
+                source_link, original_url
+            )
+            file_obj = download_file_from_url(resource_link)
+            save_file(file_obj, source_new_filename, save_dir_path)
+            change_resource_link(soup_item, source_new_filename, save_dir_path)
+        bar.next()

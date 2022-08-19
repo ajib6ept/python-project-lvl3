@@ -21,10 +21,6 @@ def main():
         eprint("{url} return error HTTP status code")
     except StorageErrorException:
         eprint(f"Error creating a directory {output}")
-    except Exception:
-        eprint(
-            f"An error occurred while trying to download {url}",
-        )
     else:
         exception_happened = False
     finally:

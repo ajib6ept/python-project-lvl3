@@ -1,9 +1,9 @@
 from urllib.parse import urljoin, urlparse
 
 
-def normalize_url_name(url):
+def normalize_name(url):
     """
-    >>> normalize_url_name('https://ru.hexlet.io/courses')
+    >>> normalize_name('https://ru.hexlet.io/courses')
     'ru-hexlet-io-courses'
     """
     url_domain_changed = urlparse(url).netloc.replace(".", "-")
@@ -28,14 +28,14 @@ def is_same_domain(file_url, url):
     return False
 
 
-def create_full_source_url(file_url, page_url):
+def create_source_url(file_url, page_url):
     """
     Create a full url for the resource
 
-    >>> create_full_source_url('/nodejs.png', 'https://ru.hexlet.io/')
+    >>> create_source_url('/nodejs.png', 'https://ru.hexlet.io/')
     'https://ru.hexlet.io/nodejs.png'
 
-    >>> create_full_source_url('https://hex.io/nodejs.png', 'https://hex.io/')
+    >>> create_source_url('https://hex.io/nodejs.png', 'https://hex.io/')
     'https://hex.io/nodejs.png'
     """
     full_source_url = file_url
@@ -44,13 +44,13 @@ def create_full_source_url(file_url, page_url):
     return full_source_url
 
 
-def get_source_new_filename(source_link, original_url):
+def get_source_filename(source_link, original_url):
     """
-    >>> get_source_new_filename('/ass/nodejs.png', 'https://ru.hex.io/co')
+    >>> get_source_filename('/ass/nodejs.png', 'https://ru.hex.io/co')
     'ru-hex-io-ass-nodejs.png'
-    >>> get_source_new_filename('https://ru.hex.io/js/runtime.js', 'https://ru.hex.io/courses') # noqa: E501
+    >>> get_source_filename('https://ru.hex.io/js/runtime.js', 'https://ru.hex.io/courses') # noqa: E501
     'ru-hex-io-js-runtime.js'
-    >>> get_source_new_filename('/courses', 'https://ru.hex.io/courses')
+    >>> get_source_filename('/courses', 'https://ru.hex.io/courses')
     'ru-hex-io-courses.html'
     """
     netloc_url = urlparse(source_link).netloc.replace(".", "-")

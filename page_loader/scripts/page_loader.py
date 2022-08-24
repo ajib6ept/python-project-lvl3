@@ -14,7 +14,6 @@ def eprint(*args, **kwargs):
 
 
 def main():
-    exception_happened = True
     try:
         args = arg_parse(standalone_mode=False)
         url, output = args[0], args[1]
@@ -28,7 +27,5 @@ def main():
     except StorageErrorException:
         eprint(f"Error creating a directory {output}")
     else:
-        exception_happened = False
-    finally:
-        if exception_happened:
-            exit(1)
+        exit(0)  # exit without error code, if the exception did not occur
+    exit(1)

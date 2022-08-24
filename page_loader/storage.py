@@ -6,15 +6,18 @@ from page_loader.exceptions import StorageErrorException
 TEXT_FILE_EXTENSION = (".css", ".js", ".html")
 
 
-def save_file(file_obj, source_new_filename, save_path_dir, file_type=".html"):
+def save_file(file_obj, source_new_filename, save_path_dir):
     full_save_path = os.path.join(save_path_dir, source_new_filename)
     with open(full_save_path, "wb") as file:
-        if file_obj.url.endswith(TEXT_FILE_EXTENSION):
-            file.write(file_obj.content)
+        if isinstance(file_obj, str):
+            file.write(file_obj.encode())
         else:
-            for chunk in file_obj.iter_content(chunk_size=128):
-                file.write(chunk)
-        logging.debug(f"Saved file into {full_save_path}")
+            if file_obj.url.endswith(TEXT_FILE_EXTENSION):
+                file.write(file_obj.content)
+            else:
+                for chunk in file_obj.iter_content(chunk_size=128):
+                    file.write(chunk)
+        logging.debug(f"Successfully saved in {full_save_path}")
 
 
 def mk_dir(dir_path):
@@ -27,9 +30,3 @@ def mk_dir(dir_path):
             raise StorageErrorException
     else:
         logging.debug(f"{dir_path} is already exists")
-
-
-def save_page(html, path):
-    with open(path, "w") as text_file:
-        text_file.write(html)
-    logging.debug(f"Successfully saved page in {path}")

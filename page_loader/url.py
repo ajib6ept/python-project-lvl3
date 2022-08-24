@@ -1,15 +1,15 @@
 from urllib.parse import urljoin, urlparse
 
 
-def create_normalize_url_name(url):
+def normalize_url_name(url):
     """
-    >>> create_normalize_url_name('https://ru.hexlet.io/courses')
+    >>> normalize_url_name('https://ru.hexlet.io/courses')
     'ru-hexlet-io-courses'
     """
     url_domain_changed = urlparse(url).netloc.replace(".", "-")
     url_path_changed = urlparse(url).path.replace("/", "-")
-    normalize_url_name = (url_domain_changed + url_path_changed).rstrip("-")
-    return normalize_url_name
+    new_url_name = (url_domain_changed + url_path_changed).rstrip("-")
+    return new_url_name
 
 
 def is_same_domain(file_url, url):
@@ -44,13 +44,13 @@ def create_full_source_url(file_url, page_url):
     return full_source_url
 
 
-def create_source_new_filename(source_link, original_url):
+def get_source_new_filename(source_link, original_url):
     """
-    >>> create_source_new_filename('/ass/nodejs.png', 'https://ru.hex.io/co')
+    >>> get_source_new_filename('/ass/nodejs.png', 'https://ru.hex.io/co')
     'ru-hex-io-ass-nodejs.png'
-    >>> create_source_new_filename('https://ru.hex.io/js/runtime.js', 'https://ru.hex.io/courses') # noqa: E501
+    >>> get_source_new_filename('https://ru.hex.io/js/runtime.js', 'https://ru.hex.io/courses') # noqa: E501
     'ru-hex-io-js-runtime.js'
-    >>> create_source_new_filename('/courses', 'https://ru.hex.io/courses')
+    >>> get_source_new_filename('/courses', 'https://ru.hex.io/courses')
     'ru-hex-io-courses.html'
     """
     netloc_url = urlparse(source_link).netloc.replace(".", "-")

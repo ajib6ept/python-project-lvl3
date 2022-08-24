@@ -1,8 +1,20 @@
 import logging
 import os
-import sys
 
 from page_loader.exceptions import StorageErrorException
+
+TEXT_FILE_EXTENSION = (".css", ".js", ".html")
+
+
+def save_file(file_obj, source_new_filename, save_path_dir, file_type=".html"):
+    full_save_path = os.path.join(save_path_dir, source_new_filename)
+    with open(full_save_path, "wb") as file:
+        if file_obj.url.endswith(TEXT_FILE_EXTENSION):
+            file.write(file_obj.content)
+        else:
+            for chunk in file_obj.iter_content(chunk_size=128):
+                file.write(chunk)
+        logging.debug(f"Saved file into {full_save_path}")
 
 
 def mk_dir(dir_path):
@@ -21,20 +33,3 @@ def save_page(html, path):
     with open(path, "w") as text_file:
         text_file.write(html)
     logging.debug(f"Successfully saved page in {path}")
-
-
-def remove_double_from_the_list(items):
-    """
-    >>> remove_double_from_the_list([[1,2], [1,2], [3,4]])
-    [[1, 2], [3, 4]]
-    """
-    new_item = []
-    for item in items:
-        if item not in new_item:
-            new_item.append(item)
-    return new_item
-
-
-def eprint(*args, **kwargs):
-    "print message to stderr"
-    print(*args, file=sys.stderr, **kwargs)

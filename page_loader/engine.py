@@ -41,6 +41,7 @@ def download_file_from_url(file_url):
         r.raise_for_status()
     except requests.exceptions.HTTPError:
         logging.info(f"Status code of {file_url} is {r.status_code}")
+        return
     return r
 
 
@@ -51,7 +52,7 @@ def download_page(url):
     return r.text
 
 
-def download_resources(resources, original_url, save_dir_path):
+def download_resources(resources, url, save_dir_path):
     mk_dir(save_dir_path)
     resources = remove_double_from_the_list(resources)
     logging.debug(f"Found {len(resources)} unique resources to download")
@@ -59,14 +60,13 @@ def download_resources(resources, original_url, save_dir_path):
     with Bar("Downloading resources", max=len(resources)) as bar:
         for resource in resources:
             soup_item, source_link = resource
-            resource_link = create_source_url(source_link, original_url)
-            source_new_filename = get_source_filename(
-                source_link, original_url
-            )
+            resource_link = create_source_url(source_link, url)
+            source_new_filename = get_source_filename(source_link, url)
             file_obj = download_file_from_url(resource_link)
-            save_file(file_obj, source_new_filename, save_dir_path)
-            local_resources.append(
-                [soup_item, source_new_filename, save_dir_path]
-            )
+            if file_obj:
+                save_file(file_obj, source_new_filename, save_dir_path)
+                local_resources.append(
+                    [soup_item, source_new_filename, save_dir_path]
+                )
             bar.next()
     return local_resources

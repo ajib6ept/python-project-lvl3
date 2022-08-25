@@ -28,6 +28,14 @@ ORIGINAL_RESPONSE_PATH = Path(TEST_DATA_DIR).joinpath("original_response.txt")
 CHANGED_RESPONSE_PATH = Path(TEST_DATA_DIR).joinpath("changed_html.txt")
 
 
+ORIGINAL_RESPONSE_PATH_BAD_LINK = Path(TEST_DATA_DIR).joinpath(
+    "response_bad_link.txt"
+)
+CHANGED_RESPONSE_PATH_BAD_LINK = Path(TEST_DATA_DIR).joinpath(
+    "changed_html_bad_link.txt"
+)
+
+
 @pytest.fixture()
 def tmpdirname():
     with tempfile.TemporaryDirectory() as tmpdirname:
@@ -78,6 +86,57 @@ def test_page_loader_base_functional(tmpdirname, requests_mock):
         Path(TEST_JS_FILE).read_bytes()
         == Path(tmpdirname)
         .joinpath(TEST_URL_DIR_NAME, TEST_URL_JS_FILE_NAME)
+        .read_bytes()
+    )
+    assert (
+        Path(TEST_CSS_FILE).read_bytes()
+        == Path(tmpdirname)
+        .joinpath(TEST_URL_DIR_NAME, TEST_URL_CSS_FILE_NAME)
+        .read_bytes()
+    )
+
+
+def test_page_loader_with_broken_source_link(tmpdirname, requests_mock):
+    """
+    test if the resource cannot be downloaded from the link
+    """
+    original_reponse = Path(ORIGINAL_RESPONSE_PATH_BAD_LINK).read_text()
+    changed_html = Path(CHANGED_RESPONSE_PATH_BAD_LINK).read_text()
+    requests_mock.get(TEST_URL, text=original_reponse)
+    requests_mock.get(
+        TEST_FULL_URL_JS_FILE, text="Page not found", status_code=404
+    )
+    requests_mock.get(
+        TEST_FULL_URL_PNG_FILE, content=Path(TEST_PNG_FILE).read_bytes()
+    )
+    requests_mock.get(
+        TEST_FULL_URL_CSS_FILE, content=Path(TEST_CSS_FILE).read_bytes()
+    )
+    file_path = download(TEST_URL, tmpdirname)
+    response = Path(file_path).read_text()
+    assert Path(file_path) == Path(tmpdirname).joinpath(TEST_URL_FILE_NAME)
+    assert response == changed_html
+    assert Path(tmpdirname).joinpath(TEST_URL_DIR_NAME).exists()
+    assert (
+        Path(tmpdirname)
+        .joinpath(TEST_URL_DIR_NAME, TEST_URL_PNG_FILE_NAME)
+        .exists()
+    )
+    assert not (
+        Path(tmpdirname)
+        .joinpath(TEST_URL_DIR_NAME, TEST_URL_JS_FILE_NAME)
+        .exists()
+    )
+
+    assert (
+        Path(tmpdirname)
+        .joinpath(TEST_URL_DIR_NAME, TEST_URL_CSS_FILE_NAME)
+        .exists()
+    )
+    assert (
+        Path(TEST_PNG_FILE).read_bytes()
+        == Path(tmpdirname)
+        .joinpath(TEST_URL_DIR_NAME, TEST_URL_PNG_FILE_NAME)
         .read_bytes()
     )
     assert (

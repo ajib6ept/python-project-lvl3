@@ -5,7 +5,7 @@ import pytest
 import requests
 
 from page_loader.engine import download
-from page_loader.exceptions import StorageErrorException
+from page_loader.storage import StorageErrorException
 
 TEST_URL = "https://ru.hexlet.io/courses"
 TEST_URL_FILE_NAME = "ru-hexlet-io-courses.html"

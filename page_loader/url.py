@@ -28,14 +28,14 @@ def is_same_domain(file_url, url):
     return False
 
 
-def create_source_url(file_url, page_url):
+def get_abs_source_url(file_url, page_url):
     """
-    Create a full url for the resource
+    get the absolute URL of the resource
 
-    >>> create_source_url('/nodejs.png', 'https://ru.hexlet.io/')
+    >>> get_abs_source_url('/nodejs.png', 'https://ru.hexlet.io/')
     'https://ru.hexlet.io/nodejs.png'
 
-    >>> create_source_url('https://hex.io/nodejs.png', 'https://hex.io/')
+    >>> get_abs_source_url('https://hex.io/nodejs.png', 'https://hex.io/')
     'https://hex.io/nodejs.png'
     """
     full_source_url = file_url

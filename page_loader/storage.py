@@ -1,9 +1,11 @@
 import logging
 import os
 
-from page_loader.exceptions import StorageErrorException
-
 TEXT_FILE_EXTENSION = (".css", ".js", ".html")
+
+
+class StorageErrorException(Exception):
+    pass
 
 
 def save_file(file_obj, source_new_filename, save_path_dir):

@@ -5,7 +5,7 @@ import requests
 
 from page_loader.cli import arg_parse
 from page_loader.engine import download
-from page_loader.exceptions import StorageErrorException
+from page_loader.storage import StorageErrorException
 
 
 def eprint(*args, **kwargs):

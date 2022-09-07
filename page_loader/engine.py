@@ -27,7 +27,31 @@ def download(url, save_path, loglevel="INFO"):
     if html_resources:
         mk_dir(url_save_dir_name)
         html_resources = remove_double_from_the_list(html_resources)
-        download_resources(html_resources, url, url_save_dir_name)
+        logging.debug(
+            f"Found {len(html_resources)} unique resources to download"
+        )
+
+        bar = Bar("Downloading resources", max=len(html_resources))
+        for resource in html_resources:
+            html_obj, source_link = resource
+            source_new_filename = get_source_filename(source_link, url)
+            try:
+                download_resource(
+                    source_link,
+                    url,
+                    source_new_filename,
+                    url_save_dir_name,
+                )
+            except Exception:
+                logging.warning(
+                    f"Failed to download and save the resource {source_link}"
+                )
+            else:
+                change_resources_link(
+                    html_obj, source_new_filename, url_save_dir_name
+                )
+            bar.next()
+        bar.finish()
 
     save_file(new_html_doc.prettify(), url_save_path, "")
     logging.info(f"Page was successfully downloaded into '{url_save_path}'")
@@ -36,11 +60,8 @@ def download(url, save_path, loglevel="INFO"):
 
 def download_file_from_url(file_url):
     r = requests.get(file_url, stream=True, timeout=DEFAULT_TIMEOUT)
-    try:
-        r.raise_for_status()
-    except requests.exceptions.HTTPError:
-        logging.info(f"Status code of {file_url} is {r.status_code}")
-        return
+    r.raise_for_status()
+    logging.debug(f"Downloaded file {file_url}")
     return r
 
 
@@ -51,18 +72,7 @@ def download_page(url):
     return r.text
 
 
-def download_resources(resources, url, save_dir_path):
-    logging.debug(f"Found {len(resources)} unique resources to download")
-    with Bar("Downloading resources", max=len(resources)) as bar:
-        for resource in resources:
-            html_obj, source_link = resource
-            resource_link = get_abs_source_url(source_link, url)
-            source_new_filename = get_source_filename(source_link, url)
-            file_obj = download_file_from_url(resource_link)
-            if file_obj:
-                save_file(file_obj, source_new_filename, save_dir_path)
-                # change it only after a successful download
-                change_resources_link(
-                    html_obj, source_new_filename, save_dir_path
-                )
-            bar.next()
+def download_resource(source_link, url, source_new_filename, save_dir_path):
+    resource_link = get_abs_source_url(source_link, url)
+    file_obj = download_file_from_url(resource_link)
+    save_file(file_obj, source_new_filename, save_dir_path)

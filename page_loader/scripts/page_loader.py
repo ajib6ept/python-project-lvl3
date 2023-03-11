@@ -16,8 +16,9 @@ def eprint(*args, **kwargs):
 def main():
     try:
         args = arg_parse(standalone_mode=False)
-        url, output = args[0], args[1]
-        download(*args)
+        if args:  # if not only -h options
+            url, output = args[0], args[1]
+            download(*args)
     except click.exceptions.BadParameter as e:
         eprint(f"Bad parameter parametr: {e}")
     except requests.exceptions.ConnectTimeout:

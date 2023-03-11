@@ -19,9 +19,13 @@ This package allows you to download web pages.
 * ```cd python-project-lvl3/ && make install```
 * ```make build```
 * ```make package-install```
+
+![install](gif/install.gif)
 ***
+
 #### Usage
-* ```page-loader -o ./page-loader https://hexlet.io```
+* ```page-loader -o /tmp/hexlet https://github.com/ajib6ept```
 ***
 ###### Download web page 
-[![asciicast](https://asciinema.org/a/nuQbxXhYOz6oa4YmLkEBcXhTS.svg)](https://asciinema.org/a/nuQbxXhYOz6oa4YmLkEBcXhTS)
+
+![page-loader](gif/page-loader.gif)

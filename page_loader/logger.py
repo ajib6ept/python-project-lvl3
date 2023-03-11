@@ -1,5 +1,5 @@
-import sys
 import logging
+import sys
 
 
 def create_logger(loglevel):

@@ -5,11 +5,17 @@ import requests
 from progress.bar import Bar
 
 from page_loader.logger import create_logger
-from page_loader.resources import (change_resources_link, parse_page,
-                                   remove_double_from_the_list)
+from page_loader.resources import (
+    change_resources_link,
+    parse_page,
+    remove_double_from_the_list,
+)
 from page_loader.storage import mk_dir, save_file
-from page_loader.url import (get_abs_source_url, get_source_filename,
-                             normalize_name)
+from page_loader.url import (
+    get_abs_source_url,
+    get_source_filename,
+    normalize_name,
+)
 
 DEFAULT_TIMEOUT = 1
 

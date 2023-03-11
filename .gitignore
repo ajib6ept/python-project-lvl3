@@ -1,5 +1,4 @@
 .venv
-.pre-commit-config.yaml
 *.pyc
 __pycache__/
 dist/

@@ -18,6 +18,7 @@ repos:
           - --diff
           - --check
           - --profile=black
+          - --line-length=79
 
   - repo: https://github.com/psf/black
     rev: 23.1.0
